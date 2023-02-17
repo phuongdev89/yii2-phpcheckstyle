@@ -21,7 +21,8 @@
 	"require" : {
 		"php" : ">=7",
 		"yiisoft/yii2" : "~2.0.4",
-		"phuongdev89/yii2-base" : "*"
+		"phuongdev89/yii2-base" : "*",
+		"phpcheckstyle/phpcheckstyle": "*"
 	},
 	"autoload" : {
 		"psr-4" : {
