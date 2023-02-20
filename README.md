@@ -48,5 +48,5 @@ php yii coverage/run frontend/controllers,frontend/models frontend/components,fr
 ```
 ### Help
 ```
-php yii help converage
+php yii help coverage/index
 ```
