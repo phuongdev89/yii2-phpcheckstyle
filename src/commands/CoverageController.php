@@ -22,21 +22,21 @@ class CoverageController extends Controller
 {
 
     /**
-     * @var bool Display progress file when checking <br/>
+     * @var bool Display progress file when checking
      * If not set, default is 1
      */
     public $progress = true;
 
     /**
-     * @var string Output format (html/text/xml/xml_console/console/html_console). <br/>
-     * Defaults to 'html'. <br/>
-     * Can be multiple formats separator by comma. <br/>
+     * @var string Output format (html/text/xml/xml_console/console/html_console).
+     * Defaults to 'html'.
+     * Can be multiple formats separator by comma.
      * Example: "html,text"
      */
     public $format = 'html';
 
     /**
-     * @var string Level to report. Default is INFO <br/>
+     * @var string Level to report. Default is INFO
      * Value is: INFO ERROR WARNING IGNORE
     */
     public $level = INFO;
@@ -46,19 +46,19 @@ class CoverageController extends Controller
     public $language = 'en-us';
 
     /**
-     * @var string|null Output directory of report. <br/>
+     * @var string|null Output directory of report.
      * default is `runtime/phpcheckstyle`
     */
     public $outdir = null;
 
     /**
-     * @var string|null Config path. <br/>
+     * @var string|null Config path.
      * default is `phuongdev89/phpcheckstyle/phpcheckstyle.xml`
      */
     public $config = null;
 
     /**
-     * @var bool Debug output. <br/>
+     * @var bool Debug output.
      * default is false
      */
     public $debug = false;
@@ -174,8 +174,8 @@ class CoverageController extends Controller
      * Example:
      * php yii coverage
      *
-     * @param bool $full <br/>
-     * true - if you want to scan coverage all project <br/>
+     * @param bool $full
+     * true - if you want to scan coverage all project
      * false - only scan by git status -s
      *
      * @return void
@@ -207,9 +207,6 @@ class CoverageController extends Controller
                     if (isset($output_array[1])) {
                         $src[] = Yii::getAlias('@' . $output_array[1]);
                         $need_to_run = true;
-                    }
-                    if ($key >= 50) {
-                        break;
                     }
                 }
             } else {
