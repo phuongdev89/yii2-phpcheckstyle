@@ -7,30 +7,76 @@
  */
 
 namespace phuongdev89\phpcheckstyle\commands;
+require_once __DIR__ . '/../../../../phpcheckstyle/phpcheckstyle/vendor/autoload.php';
 
+use Error;
+use ErrorException;
+use Exception;
 use PHPCheckstyle\PHPCheckstyle;
 use phuongdev89\base\Module;
 use Yii;
 use yii\console\Controller;
+use yii\helpers\ArrayHelper;
 
 class CoverageController extends Controller
 {
+
     /**
-     * @var bool adiguhadighai uiasdghuiadhg
+     * @var bool Display progress file when checking <br/>
+     * If not set, default is 1
      */
     public $progress = true;
 
-    public $format = ['html'];
-    public $quite = false;
+    /**
+     * @var string Output format (html/text/xml/xml_console/console/html_console). <br/>
+     * Defaults to 'html'. <br/>
+     * Can be multiple formats separator by comma. <br/>
+     * Example: "html,text"
+     */
+    public $format = 'html';
+
+    /**
+     * @var string Level to report. Default is INFO <br/>
+     * Value is: INFO ERROR WARNING IGNORE
+    */
     public $level = INFO;
 
     public $maxErrors = 100;
 
     public $language = 'en-us';
+
+    /**
+     * @var string|null Output directory of report. <br/>
+     * default is `runtime/phpcheckstyle`
+    */
     public $outdir = null;
+
+    /**
+     * @var string|null Config path. <br/>
+     * default is `phuongdev89/phpcheckstyle/phpcheckstyle.xml`
+     */
     public $config = null;
+
+    /**
+     * @var bool Debug output. <br/>
+     * default is false
+     */
     public $debug = false;
 
+    protected $defaultExcludes = ['vendor', 'environments', 'requirements.php', 'console/migrations'];
+
+
+    /**
+     * @inheritDoc
+     */
+    public function options($actionID)
+    {
+        return ['progress', 'debug', 'format', 'quite', 'level', 'maxErrors', 'language', 'outdir', 'config'];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function init()
     {
         parent::init();
@@ -42,33 +88,56 @@ class CoverageController extends Controller
         }
     }
 
-    public function options($actionID)
+    /**
+     * @inheritDoc
+     */
+    public function beforeAction($action)
     {
-        $a[] = 'progress';
-        return $a;
-    }
-
-    public function actionRun($src, $exclude = '')
-    {
-        defined('PHPCHECKSTYLE_HOME_DIR') or define('PHPCHECKSTYLE_HOME_DIR', Yii::getAlias('@vendor/phpcheckstyle/phpcheckstyle'));
-        if (!is_array($exclude)) {
-            if ($exclude == '') {
-                $exclude = [];
+        if (is_string($this->format)) {
+            if (strpos($this->format, ',')) {
+                $this->format = explode(',', $this->format);
             } else {
-                $exclude = [$exclude];
+                $this->format = [$this->format];
             }
         }
-        if (substr($src, 0, 1) !== '@') {
-            $src = '@' . $src;
-        }
-        if (strpos($src, '@') !== false) {
-            $src = Yii::getAlias($src);
-        }
-        if (!file_exists($src)) {
-            echo 'Folder/File does not exist';
-            die;
+        return parent::beforeAction($action);
+    }
+
+    /**
+     * Run a scan with folders/files with exclude folders/files
+     *
+     * Example:
+     * php yii coverage/run frontend/controllers frontend/models,frontend/forms
+     *
+     * @param string|array $src
+     * @param string|array $exclude exclude folders/files, separator by comma
+     * @return void
+     * @throws Exception
+     *
+     * @datetime 18/2/2023 1:20 AM
+     * @author   Phuong Dev <phuongdev89@gmail.com>
+     * @version  1.0.0
+     */
+    public function actionRun($src, $exclude = '')
+    {
+        if (!is_array($exclude)) {
+            if ($exclude == '') {
+                $exclude = $this->defaultExcludes;
+            } else {
+                $exclude = ArrayHelper::merge($this->defaultExcludes, [$exclude]);
+            }
         }
         if (!is_array($src)) {
+            if (substr($src, 0, 1) !== '@') {
+                $src = '@' . $src;
+            }
+            if (strpos($src, '@') !== false) {
+                $src = Yii::getAlias($src);
+            }
+            if (!file_exists($src)) {
+                echo 'Folder/File does not exist';
+                die;
+            }
             $src = [$src];
         }
         $lineCountFile = null;
@@ -77,51 +146,57 @@ class CoverageController extends Controller
         if (file_exists(PHPCHECKSTYLE_HOME_DIR . '/../src/PHPCheckstyle/Lang/' . $this->language . '.ini')) {
             $style->setLang($this->language);
         }
-        $style->processFiles($src, $exclude);
-
-        $errorCounts = $style->getErrorCounts();
-        if (!$this->quite) {
-            echo PHP_EOL . "Summary" . PHP_EOL;
-            echo "=======" . PHP_EOL . PHP_EOL;
-            echo "Errors:   " . $errorCounts[ERROR] . PHP_EOL;
-            echo "Ignores:  " . $errorCounts[IGNORE] . PHP_EOL;
-            echo "Infos:    " . $errorCounts[INFO] . PHP_EOL;
-            echo "Warnings: " . $errorCounts[WARNING] . PHP_EOL;
-            echo "=======" . PHP_EOL . PHP_EOL;
-            echo "Reporting Completed." . PHP_EOL;
-            $time_end = microtime(true);
-            $time = $time_end - $time_start;
-            echo "Processing ended in " . $time . " ms" . PHP_EOL;
+        try {
+            $style->processFiles($src, $exclude);
+        } catch (Exception|Error|ErrorException $e) {
+            echo 'Above file need to be formatted before continue' . PHP_EOL;
+            echo $e->getMessage();
         }
+        $errorCounts = $style->getErrorCounts();
+        echo PHP_EOL . "Summary" . PHP_EOL;
+        echo "=======" . PHP_EOL . PHP_EOL;
+        echo "Errors:   " . $errorCounts[ERROR] . PHP_EOL;
+        echo "Ignores:  " . $errorCounts[IGNORE] . PHP_EOL;
+        echo "Infos:    " . $errorCounts[INFO] . PHP_EOL;
+        echo "Warnings: " . $errorCounts[WARNING] . PHP_EOL;
+        echo "=======" . PHP_EOL . PHP_EOL;
+        echo "Reporting Completed." . PHP_EOL;
+        $time_end = microtime(true);
+        $time = $time_end - $time_start;
+        echo "Processing ended in " . $time . " ms" . PHP_EOL;
+        $this->_phpstormDebug();
+        $this->_runWebBrowser();
     }
 
     /**
      * using to test coverage
+     *
+     * Example:
+     * php yii coverage
+     *
+     * @param bool $full <br/>
+     * true - if you want to scan coverage all project <br/>
+     * false - only scan by git status -s
+     *
      * @return void
+     * @throws Exception
      *
      * @datetime 17/2/2023 1:20 AM
      * @author   Phuong Dev <phuongdev89@gmail.com>
+     * @version  1.0.0
      */
     public function actionIndex($full = false)
     {
         $src = [];
         $need_to_run = true;
-        $outdir = Yii::getAlias('@runtime') . '/phpcheckstyle';
-        if (!file_exists($outdir)) {
-            mkdir($outdir, 0777, true);
-        }
-        if (PHP_OS === 'WINNT') {
-            $command = 'php .\vendor\phpcheckstyle\phpcheckstyle\run.php --progress --config ' . Yii::getAlias('@phuongdev89/phpcheckstyle') . '/phpcheckstyle.xml --outdir ' . $outdir;
-            $start = 'start ' . $outdir . '\index.html';
-        } else {
-            $command = './vendor/bin/phpcheckstyle --progress --config ' . Yii::getAlias('@phuongdev89/phpcheckstyle') . '/phpcheckstyle.xml --outdir ' . $outdir;
-            $start = 'echo "Open ' . $outdir . '/index.html to see report';
+        if (!file_exists($this->outdir)) {
+            mkdir($this->outdir, 0777, true);
         }
         if ($full) {
             if (Module::isBasic()) {
-                $command .= ' --src ' . Yii::getAlias('@app');
+                $src[] = Yii::getAlias('@app');
             } else {
-                $command .= ' --src ' . Yii::getAlias('@common') . '/../';
+                $src[] = dirname(Yii::getAlias('@common'));
             }
         } else {
             $need_to_run = false;
@@ -140,22 +215,53 @@ class CoverageController extends Controller
             } else {
                 echo "Git error";
             }
-            $command .= ' --src ' . implode(' --src ', $src);
         }
         if ($need_to_run) {
-            if (($output = shell_exec($command)) !== false) {
-                echo $output;
-                $outfile = $outdir . '/index.html';
-                if (file_exists($outfile)) {
-                    $content = file_get_contents($outfile);
-                    $content = str_replace('</head>', '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script></head>', $content);
-                    $content = str_replace('</body>', '<script>$.each($(".tableCellBold"), function(k,v){let line = $(v).text();let h2 = $(v).closest(".dataTable").prev();$(v).html("<a href=\"phpstorm://open?url=file://"+h2.text()+"&line="+line+"\">"+line+"</a>")})</script></body>', $content);
-                    file_put_contents($outfile, $content);
-                    shell_exec($start);
-                }
-            }
+            $this->actionRun($src);
+            $this->_phpstormDebug();
+            $this->_runWebBrowser();
         } else {
             echo "Nothing to change";
         }
+    }
+
+    /**
+     * Supported phpstorm debug by using https://github.com/phuongdev89/phpstorm-protocol
+     *
+     * @return void
+     *
+     * @datetime 18/2/2023 1:44 AM
+     * @author   Phuong Dev <phuongdev89@gmail.com>
+     * @version  1.0.0
+     */
+    private function _phpstormDebug()
+    {
+        $outfile = $this->outdir . '/index.html';
+        if (file_exists($outfile)) {
+            $content = file_get_contents($outfile);
+            $content = str_replace('</head>', '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script></head>', $content);
+            $content = str_replace('</body>', '<script>$.each($(".tableCellBold"), function(k,v){let line = $(v).text();let h2 = $(v).closest(".dataTable").prev();$(v).html("<a href=\"phpstorm://open?url=file://"+h2.text()+"&line="+line+"\">"+line+"</a>")})</script></body>', $content);
+            file_put_contents($outfile, $content);
+        }
+
+    }
+
+    /**
+     * Open report by using default browser
+     *
+     * @return void
+     *
+     * @datetime 21/2/2023 12:51 AM
+     * @author   Phuong Dev <phuongdev89@gmail.com>
+     * @version  1.0.0
+     */
+    private function _runWebBrowser()
+    {
+        if (PHP_OS === 'WINNT') {
+            $start = 'start ' . $this->outdir . '\index.html';
+        } else {
+            $start = 'echo "Open ' . $this->outdir . '/index.html to see report';
+        }
+        shell_exec($start);
     }
 }

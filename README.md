@@ -26,7 +26,27 @@ Add to `console/config/main.php`
 ```
 
 # Usage
-
+### Scan only git modified
 ```
 php yii coverage
+```
+### Scan all project, exclude `environments` `vendor` `test`
+```
+php yii coverage 1
+```
+### Scan file or folder
+```
+php yii coverage/run frontend/controllers
+```
+### Scan multiple files or folders
+```
+php yii coverage/run frontend/controllers,frontend/models
+```
+### Scan multiple files or folders and exclude some files or folders
+```
+php yii coverage/run frontend/controllers,frontend/models frontend/components,frontend/helpers
+```
+### Help
+```
+php yii help converage
 ```

@@ -18,5 +18,12 @@ class Bootstrap implements BootstrapInterface
     public function bootstrap($app)
     {
         Yii::setAlias('phuongdev89/phpcheckstyle', __DIR__);
+        $constantFile = Yii::getAlias('@vendor/phpcheckstyle/phpcheckstyle/src/PHPCheckstyle/_Constants.php');
+        $constant = file_get_contents($constantFile);
+        preg_match('/\.\s\"(\/\.\.)\"/', $constant, $output);
+        if (isset($output[1])) {
+            $constant = str_replace('"/.."', '"/../.."', $constant);
+            file_put_contents($constantFile, $constant);
+        }
     }
 }

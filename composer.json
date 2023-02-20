@@ -19,7 +19,7 @@
 	},
 	"minimum-stability" : "stable",
 	"require" : {
-		"php" : ">=7",
+		"php" : ">=7.1",
 		"yiisoft/yii2" : "~2.0.4",
 		"phuongdev89/yii2-base" : "*",
 		"phpcheckstyle/phpcheckstyle": "*"
@@ -31,5 +31,11 @@
 	},
 	"extra" : {
 		"bootstrap" : "phuongdev89\\phpcheckstyle\\Bootstrap"
-	}
+	},
+	"repositories" : [
+		{
+			"type" : "git",
+			"url" : "https://github.com/phuongdev89/phpcheckstyle"
+		}
+	]
 }

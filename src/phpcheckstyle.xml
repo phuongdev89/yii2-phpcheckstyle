@@ -329,7 +329,8 @@
 	</test>
 
 	<!-- Check for encapsed variables inside a String ("$a") -->
-	<test name="encapsedVariablesInsideString" />
+	<!-- Ignore if version >= 7.0-->
+<!--	<test name="encapsedVariablesInsideString" />-->
 
 	<!-- Avoid passing parameters by reference -->
 	<test name="avoidPassingReferences" />
@@ -375,6 +376,8 @@
 		in their own toplevel statement to increase readability. -->
 	<test name="checkInnerAssignment">
 		<exception value="for" />
+		<exception value="if" />
+		<exception value="elseif" />
 	</test>
 
 	<!-- Only one class declaration per PHP file -->
