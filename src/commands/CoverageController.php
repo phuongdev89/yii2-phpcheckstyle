@@ -182,6 +182,7 @@ class CoverageController extends Controller
      */
     public function actionGit($hash)
     {
+        $src = [];
         $git = exec('git show --pretty="" --name-status', $files);
         if ($git !== false) {
             foreach ($files as $key => $file) {
@@ -193,10 +194,14 @@ class CoverageController extends Controller
         } else {
             echo "Git error";
         }
-        $this->debug = true;
-        $this->actionRun($src);
-        $this->_phpstormDebug();
-        $this->_runWebBrowser();
+        if ($src != null) {
+            $this->debug = true;
+            $this->actionRun($src);
+            $this->_phpstormDebug();
+            $this->_runWebBrowser();
+        } else {
+            echo "Nothing to run";
+        }
     }
 
     /**
