@@ -164,8 +164,10 @@ class CoverageController extends Controller
         $time_end = microtime(true);
         $time = $time_end - $time_start;
         echo "Processing ended in " . $time . " ms" . PHP_EOL;
-        $this->_phpstormDebug();
-        $this->_runWebBrowser();
+        if (in_array('html', $this->format)) {
+            $this->_phpstormDebug();
+            $this->_runWebBrowser();
+        }
     }
 
     /**
@@ -183,22 +185,23 @@ class CoverageController extends Controller
     public function actionGit($hash)
     {
         $src = [];
-        $git = exec('git show --pretty="" --name-status', $files);
+        $git = exec('git show --pretty="" --name-status ' . $hash, $files);
         if ($git !== false) {
             foreach ($files as $key => $file) {
                 preg_match('/^[A|M]\s+([^environments][^\/config\/].*\.php)/', $file, $output_array);
                 if (isset($output_array[1])) {
-                    $src[] = Yii::getAlias('@' . trim($output_array[1]));
+                    $src[] = trim($output_array[1]);
                 }
             }
         } else {
             echo "Git error";
         }
         if ($src != null) {
-            $this->debug = true;
             $this->actionRun($src);
-            $this->_phpstormDebug();
-            $this->_runWebBrowser();
+            if (in_array('html', $this->format)) {
+                $this->_phpstormDebug();
+                $this->_runWebBrowser();
+            }
         } else {
             echo "Nothing to run";
         }
@@ -241,7 +244,8 @@ class CoverageController extends Controller
                 foreach ($files as $key => $file) {
                     preg_match('/^[A\s][M|\s]\s([^environments][^\/config\/].*\.php)/', $file, $output_array);
                     if (isset($output_array[1])) {
-                        $src[] = Yii::getAlias('@' . $output_array[1]);
+                        $src[] = trim($output_array[1]);
+                        $src[] = trim($output_array[1]);
                         $need_to_run = true;
                     }
                 }
@@ -251,8 +255,10 @@ class CoverageController extends Controller
         }
         if ($need_to_run) {
             $this->actionRun($src);
-            $this->_phpstormDebug();
-            $this->_runWebBrowser();
+            if (in_array('html', $this->format)) {
+                $this->_phpstormDebug();
+                $this->_runWebBrowser();
+            }
         } else {
             echo "Nothing to change";
         }
