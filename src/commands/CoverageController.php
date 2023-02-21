@@ -193,6 +193,7 @@ class CoverageController extends Controller
         } else {
             echo "Git error";
         }
+        $this->debug = true;
         $this->actionRun($src);
         $this->_phpstormDebug();
         $this->_runWebBrowser();
