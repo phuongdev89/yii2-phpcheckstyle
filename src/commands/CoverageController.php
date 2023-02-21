@@ -38,7 +38,7 @@ class CoverageController extends Controller
     /**
      * @var string Level to report. Default is INFO
      * Value is: INFO ERROR WARNING IGNORE
-    */
+     */
     public $level = INFO;
 
     public $maxErrors = 100;
@@ -48,7 +48,7 @@ class CoverageController extends Controller
     /**
      * @var string|null Output directory of report.
      * default is `runtime/phpcheckstyle`
-    */
+     */
     public $outdir = null;
 
     /**
@@ -164,6 +164,36 @@ class CoverageController extends Controller
         $time_end = microtime(true);
         $time = $time_end - $time_start;
         echo "Processing ended in " . $time . " ms" . PHP_EOL;
+        $this->_phpstormDebug();
+        $this->_runWebBrowser();
+    }
+
+    /**
+     * using to test coverage by commit
+     *
+     * @param string $hash
+     *
+     * @return void
+     * @throws Exception
+     *
+     * @datetime 17/2/2023 1:20 AM
+     * @author   Phuong Dev <phuongdev89@gmail.com>
+     * @version  1.0.0
+     */
+    public function actionGit($hash)
+    {
+        $git = exec('git show --pretty="" --name-status', $files);
+        if ($git !== false) {
+            foreach ($files as $key => $file) {
+                preg_match('/^[A|M]\s+([^environments][^\/config\/].*\.php)/', $file, $output_array);
+                if (isset($output_array[1])) {
+                    $src[] = Yii::getAlias('@' . trim($output_array[1]));
+                }
+            }
+        } else {
+            echo "Git error";
+        }
+        $this->actionRun($src);
         $this->_phpstormDebug();
         $this->_runWebBrowser();
     }
