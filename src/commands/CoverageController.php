@@ -270,9 +270,14 @@ class CoverageController extends Controller
     {
         $outfile = $this->outdir . '/index.html';
         if (file_exists($outfile)) {
+            if (Module::isBasic()) {
+                $prefix = Yii::getAlias('@app');
+            } else {
+                $prefix = str_replace('\\', '/', dirname(Yii::getAlias('@common')));
+            }
             $content = file_get_contents($outfile);
             $content = str_replace('</head>', '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script></head>', $content);
-            $content = str_replace('</body>', '<script>$.each($(".tableCellBold"), function(k,v){let line = $(v).text();let h2 = $(v).closest(".dataTable").prev();$(v).html("<a href=\"phpstorm://open?url=file://"+h2.text()+"&line="+line+"\">"+line+"</a>")})</script></body>', $content);
+            $content = str_replace('</body>', '<script>$.each($(".tableCellBold"), function(k,v){let line = $(v).text();let h2 = $(v).closest(".dataTable").prev();$(v).html("<a href=\"phpstorm://open?url=file://' . $prefix . '/"+h2.text()+"&line="+line+"\">"+line+"</a>")})</script></body>', $content);
             file_put_contents($outfile, $content);
         }
 
