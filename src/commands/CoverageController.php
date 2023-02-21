@@ -140,9 +140,10 @@ class CoverageController extends Controller
             }
             $src = [$src];
         }
+        $format = $this->format;
         $lineCountFile = null;
         $time_start = microtime(true);
-        $style = new PHPCheckstyle($this->format, $this->outdir, $this->config, $lineCountFile, $this->debug, $this->progress);
+        $style = new PHPCheckstyle($format, $this->outdir, $this->config, $lineCountFile, $this->debug, $this->progress);
         if (file_exists(PHPCHECKSTYLE_HOME_DIR . '/../src/PHPCheckstyle/Lang/' . $this->language . '.ini')) {
             $style->setLang($this->language);
         }
@@ -198,10 +199,6 @@ class CoverageController extends Controller
         }
         if ($src != null) {
             $this->actionRun($src);
-            if (in_array('html', $this->format)) {
-                $this->_phpstormDebug();
-                $this->_runWebBrowser();
-            }
         } else {
             echo "Nothing to run";
         }
@@ -255,10 +252,6 @@ class CoverageController extends Controller
         }
         if ($need_to_run) {
             $this->actionRun($src);
-            if (in_array('html', $this->format)) {
-                $this->_phpstormDebug();
-                $this->_runWebBrowser();
-            }
         } else {
             echo "Nothing to change";
         }
