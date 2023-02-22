@@ -210,9 +210,6 @@ class CoverageController extends Controller
         } else {
             echo "Git error";
         }
-        echo '<pre>';
-        print_r($src);
-        die;
         if ($src != null) {
             $this->actionRun($src);
         } else {
