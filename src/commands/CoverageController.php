@@ -29,7 +29,7 @@ class CoverageController extends Controller
     public $progress = true;
 
     /**
-     * @var string Output format (html/text/xml/xml_console/console/html_console).
+     * @var string|array Output format (html/text/xml/xml_console/console/html_console/junit).
      * Defaults to 'html'.
      * Can be multiple formats separator by comma.
      * Example: "html,text"
@@ -130,6 +130,7 @@ class CoverageController extends Controller
      */
     public function actionRun($src, $exclude = '')
     {
+        $format = $this->format;
         if (!is_array($exclude)) {
             if ($exclude == '') {
                 $exclude = $this->defaultExcludes;
@@ -149,7 +150,6 @@ class CoverageController extends Controller
             }
             $src = [$src];
         }
-        $format = $this->format;
         $lineCountFile = null;
         $time_start = microtime(true);
         $style = new PHPCheckstyle($format, $this->outdir, $this->config, $lineCountFile, $this->debug, $this->progress);
@@ -174,7 +174,7 @@ class CoverageController extends Controller
         $time_end = microtime(true);
         $time = $time_end - $time_start;
         echo "Processing ended in " . $time . " ms" . PHP_EOL;
-        if (in_array('html', $this->format)) {
+        if (in_array('html', $format)) {
             $this->_phpstormDebug();
             $this->_runWebBrowser();
         }
@@ -285,9 +285,9 @@ class CoverageController extends Controller
     private function _runWebBrowser()
     {
         if (PHP_OS === 'WINNT') {
-            $start = 'start ' . $this->outdir . '\index.html';
+            $start = 'start ' . $this->outdir . DIRECTORY_SEPARATOR . 'index.html';
         } else {
-            $start = 'echo "Open ' . $this->outdir . '/index.html to see report';
+            $start = 'echo "Open ' . $this->outdir . DIRECTORY_SEPARATOR . 'index.html to see report';
         }
         shell_exec($start);
     }
