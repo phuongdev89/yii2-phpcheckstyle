@@ -20,7 +20,7 @@ use yii\helpers\ArrayHelper;
 
 class CoverageController extends Controller
 {
-    const GIT_REGEX = '/^[A\s][M\s]\s+(((?!environments|\/config\/).)*\.php)/';
+    const GIT_REGEX = '/[AM]\s+(.*\.php)/';
 
     /**
      * @var bool Display progress file when checking
@@ -210,6 +210,9 @@ class CoverageController extends Controller
         } else {
             echo "Git error";
         }
+        echo '<pre>';
+        print_r($src);
+        die;
         if ($src != null) {
             $this->actionRun($src);
         } else {
