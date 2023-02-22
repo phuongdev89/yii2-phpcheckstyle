@@ -14,7 +14,15 @@ coding standards.
 ```
 composer require phuongdev89/yii2-phpcheckstyle
 ```
-
+Add to your root `composer.json`
+```
+"repositories" : [
+    {
+        "type" : "git",
+        "url" : "https://github.com/phuongdev89/phpcheckstyle"
+    }
+]
+```
 Add to `console/config/main.php`
 
 ```php
@@ -24,11 +32,25 @@ Add to `console/config/main.php`
     ],
 ]
 ```
-
+# Options
+| Name           | Type          | Description                                                                                                 | Required | Default value                               |
+|----------------|---------------|-------------------------------------------------------------------------------------------------------------|----------|---------------------------------------------|
+| **$progress**  | bool          | Display progress file when checking If not set, default is 1                                                | No       | true                                        |
+| **$format**    | string\|array | Output format (html/text/xml/xml_console/console/html_console). Can be multiple formats separator by comma. | No       | html                                        |
+| **$level**     | string        | Level to report Value is: INFO ERROR WARNING IGNORE                                                         | No       | INFO                                        |
+| **$maxErrors** | int           |                                                                                                             | No       | 100                                         |
+| **$language**  | string        |                                                                                                             | No       | en-us                                       |
+| **$outdir**    | string\|null  | Output directory of report                                                                                  | No       | runtime/phpcheckstyle                       |
+| **$config**    | string\|null  | Config path                                                                                                 | No       | phuongdev89/phpcheckstyle/phpcheckstyle.xml |
+| **$debug**     | bool          | Debug output                                                                                                | No       | false                                       |
 # Usage
 ### Scan only git modified
 ```
 php yii coverage
+```
+or
+```
+php yii coverage/git
 ```
 ### Scan all project, exclude `environments` `vendor` `test`
 ```
@@ -49,4 +71,6 @@ php yii coverage/run frontend/controllers,frontend/models frontend/components,fr
 ### Help
 ```
 php yii help coverage/index
+php yii help coverage/git
+php yii help coverage/run
 ```
