@@ -20,6 +20,7 @@ use yii\helpers\ArrayHelper;
 
 class CoverageController extends Controller
 {
+    const GIT_REGEX = '/^[A\s][M\s]\s+(((?!environments|\/config\/).)*\.php)/';
 
     /**
      * @var bool Display progress file when checking
@@ -65,6 +66,7 @@ class CoverageController extends Controller
 
     protected $defaultExcludes = ['vendor', 'environments', 'requirements.php', 'console/migrations'];
 
+    protected $defaultRootDir = null;
 
     /**
      * @inheritDoc
@@ -85,6 +87,14 @@ class CoverageController extends Controller
         }
         if ($this->config === null) {
             $this->config = Yii::getAlias('@phuongdev89/phpcheckstyle/phpcheckstyle.xml');
+        }
+
+        if ($this->defaultRootDir === null) {
+            if (Module::isBasic()) {
+                $this->defaultRootDir = Yii::getAlias('@app');
+            } else {
+                $this->defaultRootDir = dirname(Yii::getAlias('@common'));
+            }
         }
     }
 
@@ -129,9 +139,8 @@ class CoverageController extends Controller
         }
         if (!is_array($src)) {
             if (substr($src, 0, 1) !== '@') {
-                $src = '@' . $src;
-            }
-            if (strpos($src, '@') !== false) {
+                $src = $this->defaultRootDir . DIRECTORY_SEPARATOR . $src;
+            } else {
                 $src = Yii::getAlias($src);
             }
             if (!file_exists($src)) {
@@ -172,9 +181,9 @@ class CoverageController extends Controller
     }
 
     /**
-     * using to test coverage by commit
+     * using to test coverage by given commit hash or recent commit
      *
-     * @param string $hash
+     * @param string|null $hash git commit hash
      *
      * @return void
      * @throws Exception
@@ -183,15 +192,19 @@ class CoverageController extends Controller
      * @author   Phuong Dev <phuongdev89@gmail.com>
      * @version  1.0.0
      */
-    public function actionGit($hash)
+    public function actionGit($hash = null)
     {
         $src = [];
-        $git = exec('git show --pretty="" --name-status ' . $hash, $files);
+        if ($hash !== null) {
+            $git = exec('git show --pretty="" --name-status ' . $hash, $files);
+        } else {
+            $git = exec('git status -s', $files);
+        }
         if ($git !== false) {
             foreach ($files as $key => $file) {
-                preg_match('/^[A|M]\s+([^environments][^\/config\/].*\.php)/', $file, $output_array);
+                preg_match(self::GIT_REGEX, $file, $output_array);
                 if (isset($output_array[1])) {
-                    $src[] = trim($output_array[1]);
+                    $src[] = $this->defaultRootDir . DIRECTORY_SEPARATOR . trim($output_array[1]);
                 }
             }
         } else {
@@ -224,7 +237,6 @@ class CoverageController extends Controller
     public function actionIndex($full = false)
     {
         $src = [];
-        $need_to_run = true;
         if (!file_exists($this->outdir)) {
             mkdir($this->outdir, 0777, true);
         }
@@ -234,26 +246,9 @@ class CoverageController extends Controller
             } else {
                 $src[] = dirname(Yii::getAlias('@common'));
             }
-        } else {
-            $need_to_run = false;
-            $git = exec('git status -s', $files);
-            if ($git !== false) {
-                foreach ($files as $key => $file) {
-                    preg_match('/^[A\s][M|\s]\s([^environments][^\/config\/].*\.php)/', $file, $output_array);
-                    if (isset($output_array[1])) {
-                        $src[] = trim($output_array[1]);
-                        $src[] = trim($output_array[1]);
-                        $need_to_run = true;
-                    }
-                }
-            } else {
-                echo "Git error";
-            }
-        }
-        if ($need_to_run) {
             $this->actionRun($src);
         } else {
-            echo "Nothing to change";
+            $this->actionGit();
         }
     }
 
@@ -270,14 +265,9 @@ class CoverageController extends Controller
     {
         $outfile = $this->outdir . '/index.html';
         if (file_exists($outfile)) {
-            if (Module::isBasic()) {
-                $prefix = Yii::getAlias('@app');
-            } else {
-                $prefix = str_replace('\\', '/', dirname(Yii::getAlias('@common')));
-            }
             $content = file_get_contents($outfile);
             $content = str_replace('</head>', '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script></head>', $content);
-            $content = str_replace('</body>', '<script>$.each($(".tableCellBold"), function(k,v){let line = $(v).text();let h2 = $(v).closest(".dataTable").prev();$(v).html("<a href=\"phpstorm://open?url=file://' . $prefix . '/"+h2.text()+"&line="+line+"\">"+line+"</a>")})</script></body>', $content);
+            $content = str_replace('</body>', '<script>$.each($(".tableCellBold"), function(k,v){let line = $(v).text();let h2 = $(v).closest(".dataTable").prev();$(v).html("<a href=\"phpstorm://open?url=file://"+h2.text()+"&line="+line+"\">"+line+"</a>")})</script></body>', $content);
             file_put_contents($outfile, $content);
         }
 
