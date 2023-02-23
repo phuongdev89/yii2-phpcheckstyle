@@ -78,7 +78,7 @@ class CoverageController extends Controller
      */
     public function options($actionID)
     {
-        return ['progress', 'debug', 'format', 'quite', 'level', 'maxErrors', 'language', 'outdir', 'config', 'run-browser'];
+        return ['progress', 'debug', 'format', 'quite', 'level', 'maxErrors', 'language', 'outdir', 'config', 'runBrowser'];
     }
 
     /**
