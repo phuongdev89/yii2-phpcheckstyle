@@ -64,6 +64,11 @@ class CoverageController extends Controller
      */
     public $debug = false;
 
+    /**
+     * @var bool run browser if possible
+     */
+    public $runBrowser = true;
+
     protected $defaultExcludes = ['vendor', 'environments', 'requirements.php', 'console/migrations'];
 
     protected $defaultRootDir = null;
@@ -73,7 +78,7 @@ class CoverageController extends Controller
      */
     public function options($actionID)
     {
-        return ['progress', 'debug', 'format', 'quite', 'level', 'maxErrors', 'language', 'outdir', 'config'];
+        return ['progress', 'debug', 'format', 'quite', 'level', 'maxErrors', 'language', 'outdir', 'config', 'run-browser'];
     }
 
     /**
@@ -289,6 +294,8 @@ class CoverageController extends Controller
         } else {
             $start = 'echo "Open ' . $this->outdir . DIRECTORY_SEPARATOR . 'index.html to see report';
         }
-        shell_exec($start);
+        if ($this->runBrowser) {
+            shell_exec($start);
+        }
     }
 }
